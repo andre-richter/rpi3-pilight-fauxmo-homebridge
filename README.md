@@ -143,9 +143,78 @@ In the Alexa App, go to smart home, and search for new devices. Afterwards, you 
 
 ## Homebridge
 
-Will be added soon. Currently there is a bug in the pilight plugin for homebridge that makes the combination unusable.
+	wget https://nodejs.org/dist/v6.10.0/node-v6.10.0-linux-armv7l.tar.xz
+	tar -xvf node-v6.10.0-linux-armv7l.tar.xz
+	cd node-v6.10.0-linux-armv7l/
+	sudo cp -R  bin/ include/ lib/ share/ /usr/local/
+	sudo apt-get install libavahi-compat-libdnssd-dev
+	sudo npm install -g --unsafe-perm homebridge
+	sudo npm install -g homebridge-pilight
+	sudo mkdir /var/lib/homebridge
+	
+Create `/var/lib/homebridge/config.json`, and add your pilight devices:
+
+	{
+	  "bridge": {
+	    "name": "Homebridge",
+	    "username": "CC:22:3D:E3:CE:30",
+	    "port": 51826,
+	    "pin": "031-45-154"
+	  },
+	  "description": "This is an example configuration file with pilight plugin.",
+	  "accessories": [
+	    {
+	      "accessory": "pilight",
+	      "name": "Couch Light",
+	      "device": "CouchLight",
+	      "sharedWS": false,
+	      "type": "Switch"
+	    }
+	  ],
+	  "platforms": [
+	  ]
+	}
+	
+Continue with
+
+	sudo chown -R homebridge:homebridge /var/lib/homebridge/
+
+Create `/etc/default/homebridge` and save:
+
+	# Defaults / Configuration options for homebridge
+	# The following settings tells homebridge where to find the config.json file and where to persist the data (i.e. pairing and others)
+	HOMEBRIDGE_OPTS=-U /var/lib/homebridge
+	# If you uncomment the following line, homebridge will log more 
+	# You can display this via systemd's journalctl: journalctl -f -u homebridge
+	# DEBUG=*
+	
+Create `etc/systemd/system/homebridge.service` and save:
+
+	[Unit]
+	Description=Node.js HomeKit Server
+	Wants=network-online.target
+        After=syslog.target network.target network-online.target
+
+	[Service]
+	Type=simple
+	User=homebridge
+	EnvironmentFile=/etc/default/homebridge
+	ExecStart=/usr/local/bin/homebridge $HOMEBRIDGE_OPTS
+	Restart=on-failure
+	RestartSec=10
+	KillMode=process
+
+	[Install]
+	WantedBy=multi-user.target
+	
+Finally, do:
+
+	sudo systemctl daemon-reload
+	sudo systemctl enable homebridge
+	sudo systemctl start homebridge
 
 ## Credits / Resources
 
  - https://raspberry.tips/hausautomatisierung/raspberry-pi-steuern-von-funksteckdosen-und-sensoren-mit-pilight/#Sensorennbspmit_dem_Raspberry_Pi_verbinden
  - https://www.pilight.org/get-started/installation/#stable_git
+ - https://gist.github.com/johannrichard/0ad0de1feb6adb9eb61a/
