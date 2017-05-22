@@ -61,6 +61,10 @@ You should see something like the following when pressing a remote button:
 The important parts are protocol, id and unit. You can test your 433 MHz transmitter with the following command, which should switch the plug:
 
         pi@rpi:~ $ pilight-send -p quigg_gt7000 -i 0 -u 0 -t
+	
+Optional: Adding `-l` as an argument can be used to program the plug via pilight. This is handy if your remote is out of batteries ;)
+
+	pi@rpi:~ $ pilight-send -p quigg_gt7000 -i 0 -u 0 -t -l
 
 If this was successful, it can be included into pilight's `config.json`.
 IMPORTANT: Always stop the pilight daemon before editing the config!
